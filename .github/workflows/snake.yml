@@ -1,29 +1,20 @@
-name: generate animation
+name: Generate animation
 
 on:
-  # run automatically every 24 hours
+  # Run automatically once per day
   schedule:
-    - cron: "0 */24 * * *" 
+    - cron: "0 0 * * *"
 
-  # allows to manually run the job at any time
+  # Allow manual execution
   workflow_dispatch:
 
-  # run on every push on the master branch
+  # Run when changes are pushed to main
   push:
     branches:
-    - main
+      - main
 
-# jobs:
-#   test:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Test
-#         uses: Platane/snk/svg-only@v3
-#         with:
-#           github_user_name: marinsantiago
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.CUSTOM_TOKEN }}
-
+permissions:
+  contents: write
 
 jobs:
   generate:
@@ -31,24 +22,17 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      # generates a snake game from a github user (<github_user_name>) contributions graph, output a svg animation at <svg_out_path>
-      - name: generate github-contribution-grid-snake.svg
+      - name: Generate contribution snake
         uses: Platane/snk/svg-only@v3
         with:
-          github_user_name: marinsantiago
+          github_user_name: ${{ github.repository_owner }}
           outputs: |
             dist/github-contribution-grid-snake.svg
             dist/github-contribution-grid-snake-dark.svg?palette=github-dark
-        env:
-          GITHUB_TOKEN: ${{ secrets.CUSTOM_TOKEN }}
 
-
-      # push the content of <build_dir> to a branch
-      # the content will be available at https://raw.githubusercontent.com/<github_user>/<repository>/<target_branch>/<file> , or as github page
-      - name: push github-contribution-grid-snake.svg to the output branch
-        uses: crazy-max/ghaction-github-pages@v3.1.0
+      - name: Publish SVG files to output branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          target_branch: output
-          build_dir: dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.CUSTOM_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: output
+          publish_dir: ./dist
